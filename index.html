@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<title>Fitness Reminder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --accent: #c8ff00;
+    --accent-dim: rgba(200, 255, 0, 0.12);
+    --accent-glow: rgba(200, 255, 0, 0.35);
+    --danger: #ff4444;
+    --danger-dim: rgba(255, 68, 68, 0.12);
+    --danger-glow: rgba(255, 68, 68, 0.35);
+    --text: #e8e8e8;
+    --text-muted: #555;
+    --text-dim: #333;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(24px + var(--safe-top)) 16px calc(24px + var(--safe-bottom));
+    background-image:
+      radial-gradient(ellipse 60% 40% at 50% -10%, rgba(200,255,0,0.06) 0%, transparent 70%);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .widget {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── INSTALL BANNER ── */
+  .install-banner {
+    background: rgba(200,255,0,0.06);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    animation: slide-down 0.4s ease;
+  }
+
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .install-banner p {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .install-banner p strong { color: var(--accent); }
+
+  .install-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
+  .install-actions button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+  }
+
+  .install-actions button.primary:hover,
+  .install-actions button.primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .install-actions button.secondary {
+    border-color: var(--text-dim);
+    color: var(--text-muted);
+    background: transparent;
+  }
+
+  /* ── iOS INSTALL HINT ── */
+  .ios-hint {
+    background: rgba(200,255,0,0.06);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    line-height: 1.7;
+    text-align: center;
+    animation: slide-down 0.4s ease;
+  }
+
+  .ios-hint strong { color: var(--accent); }
+  .ios-hint .share-icon { font-size: 14px; vertical-align: middle; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 24px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .app-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.8;
+  }
+
+  .app-title {
+    font-family: var(--font-display);
+    font-size: 38px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-wrapper {
+    position: relative;
+    overflow: hidden;
+    margin: 0 -24px;
+    padding: 0 24px;
+  }
+
+  .timeline-wrapper::before,
+  .timeline-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 40px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .timeline-wrapper::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--surface), transparent);
+  }
+  .timeline-wrapper::after {
+    right: 0;
+    background: linear-gradient(-90deg, var(--surface), transparent);
+  }
+
+  .timeline {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 4px 0 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .timeline::-webkit-scrollbar { display: none; }
+
+  .day-pill {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    cursor: default;
+    transition: all 0.2s ease;
+    min-width: 54px;
+  }
+
+  .day-pill .day-name {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .day-pill .day-num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--text-dim);
+    line-height: 1;
+  }
+
+  .day-pill.today {
+    background: var(--accent-dim);
+    border-color: rgba(200,255,0,0.3);
+  }
+
+  .day-pill.today .day-name { color: var(--accent); }
+  .day-pill.today .day-num  { color: var(--accent); }
+  .day-pill.past .day-num   { color: #2a2a2a; }
+
+  /* ── CLOCK BAR ── */
+  .clock-bar {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+  }
+
+  .clock {
+    font-family: var(--font-display);
+    font-size: 42px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .clock-date {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 1.7;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.5s ease, border-color 0.5s ease;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--danger-dim);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .card.done::before { background: var(--accent-dim); }
+
+  .card-inner { position: relative; z-index: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .workout-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--danger);
+    transition: color 0.5s;
+    margin-bottom: 6px;
+  }
+
+  .card.done .workout-label { color: var(--accent); }
+
+  .workout-title {
+    font-family: var(--font-display);
+    font-size: 30px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    margin-top: 4px;
+    box-shadow: 0 0 8px var(--danger-glow);
+    transition: background 0.5s, box-shadow 0.5s;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .card.done .status-dot {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+    animation: none;
+  }
+
+  /* ── NOTIFICA STATUS ── */
+  .notif-status {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 16px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { margin-bottom: 24px; }
+
+  .progress-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--danger);
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+    box-shadow: 0 0 6px var(--danger-glow);
+    width: 0%;
+  }
+
+  .card.done .progress-fill {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+    width: 100% !important;
+  }
+
+  /* ── BUTTON ── */
+  .complete-btn {
+    width: 100%;
+    padding: 16px;
+    border: 1.5px solid var(--danger);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--danger);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    -webkit-appearance: none;
+  }
+
+  .complete-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--danger);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .complete-btn:hover::before { transform: scaleX(1); }
+  .complete-btn:hover { color: var(--bg); }
+  .complete-btn span { position: relative; z-index: 1; }
+
+  .card.done .complete-btn {
+    border-color: var(--accent);
+    color: var(--bg);
+    cursor: default;
+    background: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .card.done .complete-btn::before { display: none; }
+
+  /* ── NOTIF PERMISSION BANNER ── */
+  .notif-banner {
+    background: rgba(200,255,0,0.06);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .notif-banner p {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .notif-banner button {
+    flex: 0 0 auto;
+    padding: 7px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .notif-banner button:hover { background: var(--accent); color: var(--bg); }
+
+  /* ── CONFETTI ── */
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(80px)  rotate(720deg); opacity: 0; }
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 1px;
+    animation: confetti-fall 0.9s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 400px) {
+    .app-title    { font-size: 30px; }
+    .clock        { font-size: 34px; }
+    .workout-title{ font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+
+  <!-- Install banner (Android/Chrome) -->
+  <div class="install-banner hidden" id="install-banner">
+    <p>Aggiungi <strong>Fitness Reminder</strong> alla schermata home per usarla come app.</p>
+    <div class="install-actions">
+      <button class="primary" id="install-btn">Installa</button>
+      <button class="secondary" id="install-dismiss">✕</button>
+    </div>
+  </div>
+
+  <!-- iOS hint -->
+  <div class="ios-hint hidden" id="ios-hint">
+    Su iPhone: tocca <span class="share-icon">⎙</span> in basso, poi
+    <strong>«Aggiungi a schermata Home»</strong>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="app-label">Daily Tracker</div>
+    <div class="app-title">Fitness<br>Reminder</div>
+    <div class="timeline-wrapper">
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </div>
+
+  <!-- CLOCK BAR -->
+  <div class="clock-bar">
+    <div class="clock" id="clock">--:--</div>
+    <div class="clock-date">
+      <span id="date-line1">---</span><br>
+      <span id="date-line2">---</span>
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card" id="card">
+    <div class="card-inner">
+
+      <div class="notif-banner hidden" id="notif-banner">
+        <p>Abilita le notifiche per i promemoria orari.</p>
+        <button onclick="requestNotifPermission()">Abilita</button>
+      </div>
+
+      <div class="card-top">
+        <div>
+          <div class="workout-label" id="workout-label">In attesa</div>
+          <div class="workout-title">Allenamento<br>Giornaliero</div>
+        </div>
+        <div class="status-dot" id="status-dot"></div>
+      </div>
+
+      <div class="notif-status" id="notif-status">
+        <span>🔔</span>
+        <span id="notif-text">Notifiche ogni ora (09:00–21:00)</span>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Stato odierno</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <button class="complete-btn" id="complete-btn" onclick="completeWorkout()">
+        <span id="btn-text">✓ &nbsp; Completa Allenamento</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── SERVICE WORKER ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+/* ── PWA INSTALL PROMPT ── */
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.remove('hidden');
+});
+
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').classList.add('hidden');
+});
+
+document.getElementById('install-dismiss').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.add('hidden');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.add('hidden');
+});
+
+/* ── iOS HINT (solo se non già installata) ── */
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function isStandalone() {
+  return window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+}
+
+if (isIOS() && !isStandalone()) {
+  document.getElementById('ios-hint').classList.remove('hidden');
+}
+
+/* ── CONSTANTS ── */
+const STORAGE_KEY      = 'fitness_reminder_state';
+const NOTIF_HOUR_START = 9;
+const NOTIF_HOUR_END   = 21;
+const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const MONTHS_IT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+/* ── STATE ── */
+let state = { completedDate: null, lastNotifHour: null };
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function isCompletedToday() { return state.completedDate === todayStr(); }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(state, JSON.parse(r)); } catch(e) {}
+  if (state.completedDate && state.completedDate !== todayStr()) {
+    state.completedDate = null; state.lastNotifHour = null; saveState();
+  }
+}
+
+/* ── TIMELINE ── */
+function buildTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  const today = new Date();
+  for (let offset = -7; offset <= 6; offset++) {
+    const d = new Date(today); d.setDate(today.getDate() + offset);
+    const pill = document.createElement('div');
+    pill.className = 'day-pill' + (offset===0?' today':offset<0?' past':'');
+    pill.innerHTML = `<span class="day-name">${DAYS_IT[d.getDay()]}</span><span class="day-num">${d.getDate()}</span>`;
+    tl.appendChild(pill);
+    if (offset === 0) setTimeout(() => pill.scrollIntoView({inline:'center',behavior:'smooth'}), 100);
+  }
+}
+
+/* ── CLOCK ── */
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+  document.getElementById('date-line1').textContent = `${DAYS_IT[now.getDay()]} ${now.getDate()} ${MONTHS_IT[now.getMonth()]}`;
+  document.getElementById('date-line2').textContent = `${now.getFullYear()}`;
+  if (h==='00' && m==='00' && state.completedDate) {
+    state.completedDate=null; state.lastNotifHour=null; saveState(); renderCard(); buildTimeline();
+  }
+}
+
+/* ── PROGRESS ── */
+function calcProgress() {
+  const now = new Date(); const h=now.getHours(); const m=now.getMinutes();
+  const total=(NOTIF_HOUR_END-NOTIF_HOUR_START)*60;
+  const elapsed=Math.max(0,(h-NOTIF_HOUR_START)*60+m);
+  return Math.min(100,Math.round((elapsed/total)*100));
+}
+
+/* ── NOTIFICATIONS ── */
+function notifGranted() { return typeof Notification!=='undefined'&&Notification.permission==='granted'; }
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  await Notification.requestPermission();
+  renderBanner();
+}
+
+function sendReminderNotif(msg) {
+  if (!notifGranted()) return;
+  new Notification('🏋️ Fitness Reminder', {
+    body: msg||'Non hai ancora completato l\'allenamento!',
+    tag: 'fitness-reminder',
+  });
+}
+
+function checkHourlyNotif() {
+  if (isCompletedToday()||!notifGranted()) return;
+  const h = new Date().getHours();
+  if (h<NOTIF_HOUR_START||h>=NOTIF_HOUR_END) return;
+  if (state.lastNotifHour!==h) {
+    state.lastNotifHour=h; saveState();
+    sendReminderNotif(`Sono le ${String(h).padStart(2,'0')}:00 — allenati! 💪`);
+    updateNotifStatus();
+  }
+}
+
+/* ── UI ── */
+function renderBanner() {
+  const b = document.getElementById('notif-banner');
+  if (!('Notification' in window)||Notification.permission==='granted'||Notification.permission==='denied')
+    b.classList.add('hidden');
+  else b.classList.remove('hidden');
+}
+
+function updateNotifStatus() {
+  const el = document.getElementById('notif-status');
+  if (isCompletedToday()) { el.innerHTML='<span>✅</span><span>Notifiche disattivate — ottimo lavoro!</span>'; return; }
+  if (!notifGranted())    { el.innerHTML='<span>🔕</span><span>Notifiche non abilitate</span>'; return; }
+  const h = state.lastNotifHour;
+  el.innerHTML = h!==null
+    ? `<span>🔔</span><span>Ultima notifica alle ${String(h).padStart(2,'0')}:00</span>`
+    : '<span>🔔</span><span>Notifiche ogni ora (09:00–21:00)</span>';
+}
+
+function renderCard() {
+  const card=document.getElementById('card');
+  const fill=document.getElementById('progress-fill');
+  const pct =document.getElementById('progress-pct');
+  if (isCompletedToday()) {
+    card.classList.add('done');
+    document.getElementById('workout-label').textContent='Completato!';
+    document.getElementById('btn-text').textContent='🏆  Allenamento Completato';
+    document.getElementById('complete-btn').disabled=true;
+    fill.style.width='100%'; pct.textContent='100%';
+  } else {
+    card.classList.remove('done');
+    document.getElementById('workout-label').textContent='In attesa';
+    document.getElementById('btn-text').innerHTML='✓ &nbsp; Completa Allenamento';
+    document.getElementById('complete-btn').disabled=false;
+    const p=calcProgress(); fill.style.width=p+'%'; pct.textContent=p+'%';
+  }
+  updateNotifStatus();
+}
+
+/* ── CONFETTI ── */
+function spawnConfetti() {
+  const card=document.getElementById('card');
+  const colors=['#c8ff00','#ffffff','#a0e000','#ffff44'];
+  for (let i=0;i<28;i++) {
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`left:${10+Math.random()*80}%;top:${Math.random()*30}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*0.4}s;animation-duration:${0.7+Math.random()*0.6}s;`;
+    card.appendChild(el);
+    setTimeout(()=>el.remove(),1500);
+  }
+}
+
+/* ── COMPLETE ── */
+function completeWorkout() {
+  if (isCompletedToday()) return;
+  state.completedDate=todayStr(); saveState();
+  spawnConfetti(); renderCard();
+}
+
+/* ── TICK ── */
+function tick() {
+  updateClock(); checkHourlyNotif();
+  if (!isCompletedToday()) {
+    const p=calcProgress();
+    document.getElementById('progress-fill').style.width=p+'%';
+    document.getElementById('progress-pct').textContent=p+'%';
+  }
+}
+
+/* ── INIT ── */
+loadState(); buildTimeline(); renderBanner(); renderCard(); tick();
+setInterval(tick, 30_000);
+setInterval(buildTimeline, 60_000);
+</script>
+</body>
+</html>
